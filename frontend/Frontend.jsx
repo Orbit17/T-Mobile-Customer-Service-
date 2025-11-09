@@ -22,7 +22,6 @@ const TMobileCHIDashboard = () => {
     { name: 'Miami', lat: 25.7617, lng: -80.1918 }
   ];
 
-  // Simulated backend functions
   const calculateCHI = (sentiment, nps_health, volume_delta) => {
     return (sentiment * 0.4 + nps_health * 0.4 + (1 + volume_delta) * 0.2) * 100;
   };
@@ -56,12 +55,11 @@ const TMobileCHIDashboard = () => {
     regions.forEach(region => {
       const data = generateBaselineData(region.name);
       newCHIData[region.name] = data;
-      
-      // Generate historical data
+
       const history = [];
-      const baseTime = new Date().getTime() - 3600000; // 1 hour ago
+      const baseTime = new Date().getTime() - 3600000; 
       for (let i = 0; i < 12; i++) {
-        const timestamp = new Date(baseTime + i * 300000); // 5 min intervals
+        const timestamp = new Date(baseTime + i * 300000); 
         const chi = data.chi + (Math.random() - 0.5) * 10;
         history.push({
           timestamp: timestamp.toISOString(),
@@ -73,8 +71,7 @@ const TMobileCHIDashboard = () => {
     
     setCHIData(newCHIData);
     setHistoricalData(newHistoricalData);
-    
-    // Add sample kudos
+
     setKudos([
       {
         id: 1,
@@ -101,8 +98,7 @@ const TMobileCHIDashboard = () => {
     const new_volume = current.volume_delta + volume_spike;
     
     const new_chi = calculateCHI(new_sentiment, new_nps, new_volume);
-    
-    // Update CHI data
+
     setCHIData(prev => ({
       ...prev,
       [selectedRegion]: {
@@ -115,8 +111,7 @@ const TMobileCHIDashboard = () => {
         timestamp: new Date().toISOString()
       }
     }));
-    
-    // Update historical data
+
     setHistoricalData(prev => ({
       ...prev,
       [selectedRegion]: [
@@ -125,10 +120,9 @@ const TMobileCHIDashboard = () => {
           timestamp: new Date().toISOString(),
           chi: new_chi
         }
-      ].slice(-20) // Keep last 20 points
+      ].slice(-20)
     }));
-    
-    // Create alert if significant drop
+
     if (chi_before - new_chi >= 10) {
       const newAlert = {
         id: alerts.length + 1,
@@ -169,7 +163,6 @@ const TMobileCHIDashboard = () => {
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(() => {
-        // Simulate small CHI fluctuations
         setCHIData(prev => {
           const updated = { ...prev };
           Object.keys(updated).forEach(region => {
@@ -361,7 +354,6 @@ const TMobileCHIDashboard = () => {
                 {/* Region markers overlay */}
                 <div className="absolute inset-0">
                   {regions.map(region => {
-                    // Position cities on North America (approximately 15-30% from left, 30-60% from top)
                     const positions = {
                       'Seattle': { left: '16%', top: '32%' },
                       'Los Angeles': { left: '14%', top: '48%' },

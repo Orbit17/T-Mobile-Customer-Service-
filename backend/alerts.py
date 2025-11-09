@@ -15,7 +15,7 @@ def _latest_chi(db: Session, region: str) -> Optional[CHI]:
 
 
 def _previous_chi(db: Session, region: str) -> Optional[CHI]:
-    # Get 2nd latest
+
     rows = list(
         db.scalars(
             select(CHI).where(CHI.region == region).order_by(desc(CHI.ts)).limit(2)
@@ -27,7 +27,7 @@ def _previous_chi(db: Session, region: str) -> Optional[CHI]:
 
 
 def _kpi_drop_25(db: Session, region: str) -> bool:
-    # Compare last two KPI snapshots
+
     rows = list(
         db.scalars(
             select(KPI).where(KPI.region == region).order_by(desc(KPI.ts)).limit(2)
