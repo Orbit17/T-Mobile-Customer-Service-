@@ -57,6 +57,45 @@ streamlit run frontend/app.py
 - Predictive module to forecast CHI in the next 1–2 hours
 - Streamlit dashboard with a US regional mood map, metrics, alerts feed, kudos, and simulator
 
+## Groq API Setup (Optional)
+
+The AI chatbot can use Groq's API for enhanced responses. To enable it:
+
+### Method 1: Using .env file (Recommended)
+
+1. Get a Groq API key from [https://console.groq.com](https://console.groq.com)
+2. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   On Windows:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+3. Edit `.env` and replace `your-groq-api-key-here` with your actual API key
+4. Optionally change `GROQ_MODEL` to use a different model
+
+The `.env` file is automatically loaded when the backend starts. **Note:** `.env` is already in `.gitignore` to protect your API key.
+
+### Method 2: Environment Variables
+
+Alternatively, you can set environment variables directly:
+
+```bash
+export GROQ_API_KEY="your-api-key-here"
+export GROQ_MODEL="llama-3.1-70b-versatile"  # optional
+```
+
+On Windows PowerShell:
+```powershell
+$env:GROQ_API_KEY="your-api-key-here"
+$env:GROQ_MODEL="llama-3.1-70b-versatile"  # optional
+```
+
+Available models: `llama-3.1-70b-versatile`, `mixtral-8x7b-32768`, `gemma-7b-it`, etc.
+
+If `GROQ_API_KEY` is not set, the chatbot will use a basic retrieval-based response without AI enhancement.
+
 ## Notes
 
 - NLP sentiment uses TextBlob with a rules-based fallback.

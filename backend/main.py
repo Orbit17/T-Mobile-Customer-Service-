@@ -1,14 +1,20 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
+from pathlib import Path
 
 from fastapi import FastAPI, Depends, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import select, desc, text
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 
 from .database import init_db, get_db
+
+# Load environment variables from .env file at startup
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(env_path)
 from .models import Event, KPI, CHI, Alert
 from .ingest import ensure_sources
 from .chi import recompute_and_store_chi, compute_chi_for_region
@@ -16,6 +22,7 @@ from .alerts import generate_alerts_for_regions
 from .simulator import simulate_outage
 from .chatbot import answer_question
 from .predict import forecast_chi
+from .alert_recommendations import generate_ai_recommendations_for_alert, generate_detailed_analysis_for_alert
 from .ingest import main as ingest_main
 from .utils import clean_text, compute_sentiment, extract_keywords_texts, classify_topic_from_keywords
 from .ingest import seed_events, seed_kpis, seed_runbook, ensure_sources
@@ -117,23 +124,50 @@ def get_regions_summary(db: Session = Depends(get_db)) -> dict:
 
 
 @app.get("/alerts")
-def get_alerts(db: Session = Depends(get_db)) -> dict:
+def get_alerts(db: Session = Depends(get_db), include_ai_recommendations: bool = Query(False)) -> dict:
     rows = list(
         db.scalars(select(Alert).order_by(desc(Alert.ts)).limit(50))
     )
+    alerts_list = []
+    for a in rows:
+        alert_dict = {
+            "id": a.id,
+            "ts": a.ts.isoformat(),
+            "region": a.region,
+            "chi_before": a.chi_before,
+            "chi_after": a.chi_after,
+            "reason": a.reason,
+            "recommendation": a.recommendation,
+        }
+        
+        # Generate AI recommendations if requested
+        if include_ai_recommendations:
+            ai_recommendations = generate_ai_recommendations_for_alert(db, a)
+            alert_dict["ai_recommendations"] = ai_recommendations
+        
+        alerts_list.append(alert_dict)
+    
+    return {"alerts": alerts_list}
+
+
+@app.get("/alerts/{alert_id}/analysis")
+def get_alert_analysis(alert_id: int, db: Session = Depends(get_db)) -> dict:
+    """
+    Get detailed AI analysis for a specific alert.
+    """
+    alert = db.scalars(select(Alert).where(Alert.id == alert_id)).first()
+    if not alert:
+        return JSONResponse(status_code=404, content={"error": "Alert not found"})
+    
+    analysis = generate_detailed_analysis_for_alert(db, alert)
     return {
-        "alerts": [
-            {
-                "id": a.id,
-                "ts": a.ts.isoformat(),
-                "region": a.region,
-                "chi_before": a.chi_before,
-                "chi_after": a.chi_after,
-                "reason": a.reason,
-                "recommendation": a.recommendation,
-            }
-            for a in rows
-        ]
+        "alert_id": alert_id,
+        "region": alert.region,
+        "ts": alert.ts.isoformat(),
+        "chi_before": alert.chi_before,
+        "chi_after": alert.chi_after,
+        "reason": alert.reason,
+        **analysis
     }
 
 

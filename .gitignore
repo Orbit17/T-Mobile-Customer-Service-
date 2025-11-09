@@ -1,18 +1,47 @@
-
-# Local secrets & envs
+# Environment variables
 .env
-*.env
-.venv/
-__pycache__/
-*.db
 
-.env
-.venv/
+# Python
 __pycache__/
-*.db
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-.env
+# Virtual environments
 .venv/
-__pycache__/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
 *.db
+*.sqlite
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
 
