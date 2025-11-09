@@ -15,7 +15,11 @@ def _latest_chi(db: Session, region: str) -> Optional[CHI]:
 
 
 def _previous_chi(db: Session, region: str) -> Optional[CHI]:
+<<<<<<< HEAD
     # Get 2nd latest
+=======
+
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
     rows = list(
         db.scalars(
             select(CHI).where(CHI.region == region).order_by(desc(CHI.ts)).limit(2)
@@ -27,7 +31,11 @@ def _previous_chi(db: Session, region: str) -> Optional[CHI]:
 
 
 def _kpi_drop_25(db: Session, region: str) -> bool:
+<<<<<<< HEAD
     # Compare last two KPI snapshots
+=======
+
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
     rows = list(
         db.scalars(
             select(KPI).where(KPI.region == region).order_by(desc(KPI.ts)).limit(2)

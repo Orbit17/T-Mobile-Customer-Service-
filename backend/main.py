@@ -1,21 +1,36 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
+<<<<<<< HEAD
 
 from fastapi import FastAPI, Depends, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+=======
+from pathlib import Path
+
+from fastapi import FastAPI, Depends, Query
+from fastapi.responses import JSONResponse
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
 from pydantic import BaseModel
 from sqlalchemy import select, desc, text
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 from .database import init_db, get_db
+<<<<<<< HEAD
+=======
+
+# Load environment variables from .env file at startup
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(env_path)
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
 from .models import Event, KPI, CHI, Alert
 from .ingest import ensure_sources
 from .chi import recompute_and_store_chi, compute_chi_for_region
 from .alerts import generate_alerts_for_regions
 from .simulator import simulate_outage
+<<<<<<< HEAD
 from .chatbot import answer_question, generate_alert_recommendations
 from .predict import forecast_chi
 from .api_chat import router as chat_router
@@ -43,6 +58,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+=======
+from .chatbot import answer_question
+from .predict import forecast_chi
+from .alert_recommendations import generate_ai_recommendations_for_alert, generate_detailed_analysis_for_alert
+from .ingest import main as ingest_main
+from .utils import clean_text, compute_sentiment, extract_keywords_texts, classify_topic_from_keywords
+from .ingest import seed_events, seed_kpis, seed_runbook, ensure_sources
+
+
+app = FastAPI(title="T-Mobile CHI MVP", version="0.1.0")
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
 
 
 class IngestEvent(BaseModel):
@@ -64,6 +90,7 @@ class QARequest(BaseModel):
     question: str
 
 
+<<<<<<< HEAD
 class IngestDocsRequest(BaseModel):
     documents: List[str]
     namespace: Optional[str] = "default"
@@ -82,11 +109,16 @@ def startup() -> None:
     load_dotenv(dotenv_path=env_path, override=True)
     # Also try loading from current directory
     load_dotenv(override=False)
+=======
+@app.on_event("startup")
+def startup() -> None:
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
     init_db()
     # ensure default sources exist
     with next(get_db()) as db:
         ensure_sources(db)
 
+<<<<<<< HEAD
 try:
     from .vectorstore import upsert_texts, upsert_items, chunk_text, query_text
 except Exception:
@@ -95,6 +127,8 @@ except Exception:
     chunk_text = None  # type: ignore
     query_text = None  # type: ignore
 
+=======
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
 
 @app.post("/ingest")
 def ingest_event(payload: IngestEvent, db: Session = Depends(get_db)) -> dict:
@@ -119,6 +153,7 @@ def ingest_event(payload: IngestEvent, db: Session = Depends(get_db)) -> dict:
     return {"status": "ok", "id": e.id}
 
 
+<<<<<<< HEAD
 @app.post("/ingest_docs")
 def ingest_docs(payload: IngestDocsRequest) -> dict:
     if upsert_texts is None:
@@ -231,6 +266,8 @@ def get_sentiment_overall(hours: int = Query(24), db: Session = Depends(get_db))
     score = (avg + 1.0) * 50.0  # map [-1,1] -> [0,100]
     return {"score": round(score, 1), "samples": len(vals), "window_hours": hours}
 
+=======
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
 @app.get("/chi")
 def get_chi(region: str = Query(...), db: Session = Depends(get_db)) -> dict:
     # If we have a recent CHI (<=5 minutes), return it; otherwise recompute
@@ -274,6 +311,7 @@ def get_regions_summary(db: Session = Depends(get_db)) -> dict:
 
 
 @app.get("/alerts")
+<<<<<<< HEAD
 def get_alerts(
     region: Optional[str] = Query(None),
     start: Optional[str] = Query(None, description="ISO datetime, e.g. 2025-11-09T00:00:00"),
@@ -318,6 +356,52 @@ def get_alerts(
             }
             for a in rows
         ]
+=======
+def get_alerts(db: Session = Depends(get_db), include_ai_recommendations: bool = Query(False)) -> dict:
+    rows = list(
+        db.scalars(select(Alert).order_by(desc(Alert.ts)).limit(50))
+    )
+    alerts_list = []
+    for a in rows:
+        alert_dict = {
+            "id": a.id,
+            "ts": a.ts.isoformat(),
+            "region": a.region,
+            "chi_before": a.chi_before,
+            "chi_after": a.chi_after,
+            "reason": a.reason,
+            "recommendation": a.recommendation,
+        }
+        
+        # Generate AI recommendations if requested
+        if include_ai_recommendations:
+            ai_recommendations = generate_ai_recommendations_for_alert(db, a)
+            alert_dict["ai_recommendations"] = ai_recommendations
+        
+        alerts_list.append(alert_dict)
+    
+    return {"alerts": alerts_list}
+
+
+@app.get("/alerts/{alert_id}/analysis")
+def get_alert_analysis(alert_id: int, db: Session = Depends(get_db)) -> dict:
+    """
+    Get detailed AI analysis for a specific alert.
+    """
+    alert = db.scalars(select(Alert).where(Alert.id == alert_id)).first()
+    if not alert:
+        return JSONResponse(status_code=404, content={"error": "Alert not found"})
+    
+    analysis = generate_detailed_analysis_for_alert(db, alert)
+    return {
+        "alert_id": alert_id,
+        "region": alert.region,
+        "ts": alert.ts.isoformat(),
+        "chi_before": alert.chi_before,
+        "chi_after": alert.chi_after,
+        "reason": alert.reason,
+        **analysis
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
     }
 
 
@@ -338,11 +422,15 @@ def post_simulate(payload: SimulateRequest, db: Session = Depends(get_db)) -> di
 
 @app.post("/qa")
 def post_qa(payload: QARequest, db: Session = Depends(get_db)) -> dict:
+<<<<<<< HEAD
     """Chat endpoint for AI assistant."""
+=======
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
     result = answer_question(db, payload.question)
     return result
 
 
+<<<<<<< HEAD
 @app.get("/predict")
 def get_predict(region: str = Query(...), db: Session = Depends(get_db)) -> dict:
     """
@@ -471,6 +559,8 @@ def get_pinecone_status() -> dict:
         }
 
 
+=======
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
 @app.post("/seed")
 def post_seed(db: Session = Depends(get_db)) -> dict:
     """
@@ -529,6 +619,7 @@ def post_recompute(payload: RecomputeRequest, db: Session = Depends(get_db)) -> 
     return {"status": "ok", "alerts_created": len(alerts)}
 
 
+<<<<<<< HEAD
 # Include chat router for recommendations endpoint
 app.include_router(chat_router)
 
@@ -538,3 +629,5 @@ def health():
     """Health check endpoint."""
     return {"status": "ok"}
 
+=======
+>>>>>>> 50e2313a86442d215d6cdf6c59817b6a38090a95
