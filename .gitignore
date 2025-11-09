@@ -1,0 +1,23 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+
+# Node / web
+node_modules/
+dist/
+build/
+.next/
+.out/
+coverage/
+.env
+.env.*
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
