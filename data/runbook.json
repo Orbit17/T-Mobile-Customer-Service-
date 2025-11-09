@@ -1,0 +1,29 @@
+[
+  {
+    "issue": "outage",
+    "steps": [
+      "Check tower alarms and site availability",
+      "Restart impacted eNodeB/gNodeB",
+      "Validate backhaul and power status",
+      "Issue customer notification if >15 min"
+    ]
+  },
+  {
+    "issue": "speed",
+    "steps": [
+      "Verify RAN load and interference KPIs",
+      "Check core congestion and throttling policies",
+      "Run speed tests across affected cells",
+      "Optimize carrier aggregation if needed"
+    ]
+  },
+  {
+    "issue": "billing",
+    "steps": [
+      "Check recent billing changes",
+      "Validate charge reversal and credits",
+      "Escalate to billing ops if systemic"
+    ]
+  }
+]
+
